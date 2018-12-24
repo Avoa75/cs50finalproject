@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Buy
+{% endblock %}
+
+{% block main %}
+    <h1 class="main">
+        You know you want this.
+    </h1>
+    <img class="main img" src="{{ image }}">
+    <p>{{ name }}</p>
+    {% for row in info %}
+    <p>{{ row }}</p>
+    {% endfor %}
+    <p>{{ price }}</p>
+    <form action="/buy" method="post">  
+        <select name="size">
+            <option value="S">Small</option>
+            <option value="M">Medium</option>
+            <option value="L">Large</option>
+            <option value="XL">Extra Large</option>
+            <option value="XXL">XXL</option>
+            <option value="XXXL">XXXL</option>
+        </select>
+	<br><br>
+        <button class="btn btn-primary" type="submit">Wanna buy?</button>
+    </form>
+{% endblock %}

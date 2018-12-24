@@ -1,0 +1,44 @@
+# Documentation
+
+Here is where I take you on a "technical tour of [my] project underneath its hood."
+
+Enjoy!
+
+## Housekeeping
+
+This project won't work on anything other than Google Chrome and Mac OSX without going into application.py and changing a few things and replacing the Chrome Driver. This is because Selenium depends on a driver (in this case, Chrome Driver) to do automated actions. I chose Chrome because I like it, and it worked best with the CSS and bootstrap assets that I incorporated into my templates. 
+
+I used Python IDLE as my IDE and the default Mac Terminal application to do code and to enter commands, respectively. I used `brew` to install pip3 and from there, I entered in the necessary commands as described in `README.md` to install the modules needed. A simple google search will yield the exact pip3 install phrase needed for each module. Your computer may already have a large number of these modules. If so, just make sure they are of the most current version.
+
+CS50 IDE, while incredibly useful, was not friendly with ChromeDriver due to some permissions problems. Also, since I needed the path to Google Chrome.app, I decided to handle all of the application processes locally.
+
+For the next section, I will go through each function in application.py and describe what it does.
+
+## `application.py`
+
+* `app.route("/")`: This is the homepage of the webapp. Following successful login, the program will check to see if there is information entered for the user. If not, it will send said user to enter information (enter.html). From there, the user will be automatically directed to the page where he or she can purchase a Chad Shirt.
+
+* `@app.route("/enter")`: This is where the user can input information. This is essentially the Finance script, except altered to accommodate the amount of data elements required. If there is a missing value, the program will notify the user. I created a credit card validation function in `helpers.py` and it is called to validate the user's credit card. If not valid, the user will be notified. I made `validate()` return a boolean for simplicity. Upon validation, the program will place the information into an SQL table and then send an email using `sendemail()` located in `helpers.py`. For more information on `sendemail()`, scroll down to the `headers.py` section.
+* `@app.route("/check")`: This is straight from Finance. If the username isn't already in the SQL table, the program will make the user register.
+* `@app.route("/userinfo")`: This is a way for the user to verify if his or her information is correct and accurate. First, the program grabs the SQL table information for the selected user and places it into `cust_info`. Then, for security, the program replaces all but the last 4 digits of `ccnum` with `*`. This happens within the program instead of in `info.html` so that malicious users cannot scrape the webpage for the credit card number. 
+* `@app.route("/update")`: If the user, upon seeing his or her information, wishes to update or fix said information, the user will click the button and will be led to `enter.html` to enter the correct information. This function acts almost identically to `@app.route("/enter")` except instead of entering information into the SQL table, the program simple updates what is already there. I decided to have the user reenter all information so that the user pays more attention to what he or she enters.
+* `@app.route("/buy")`: This is the largest part of my project, and thus deserves the most attention. As such, I will divide it into two parts, `GET` and `POST`.
+	* `GET`: This part primarily uses `BeautifulSoup` in order to scrape the Chad Shirts website for information. `Requests` is also used to point the scraper to the correct URL. I decided to make this a dedicated Chad Shirts bot for a dedicated shirt (meaning that I hardcoded the URL and the shirt into the code) because the HTML `<div>` classes and anti-bot methods are different for each website. By making this for one website, I can guarantee it works. In order to get the image, I add all images that `soup.find_all('img')` finds from the website HTML into list `image[]` and select `image[1]`, where `image[0]` is the logo. I figured that it's more impressive to take the image from the webpage instead of keep it as part of the project files. In addition, if something changes, I could easily just change the URL to that of a different Chad Shirts product and I could get the image in the same way. I also have `BeautifulSoup` take the name and price from the webpage as per whatever `<h#>` it is. If there is no price, the program notifies the user that the product is not available. The program then renders `buy.html`.
+	
+	* `POST`: Once the user selects whatever size he or she desires, the user presses the button and waits a while. Eventually (meaning a week or two later), a Chad Shirt will materialize at the specified address. This is how I did it using Selenium! First, the program puts the desired size into the variable `size`. Then, the program uses `seleniumrequests` to create an invisible Chrome window through which the humble bot can execute actions. In this part of the code, I had to specify the location of Google Chrome. **This location is unique to my computer. Change it to work with your own computer. Thank you.** Next, I orient the driver to the specified URL and let it go! Then, I have the bot select the specified size and [take a screenshot](https://imgur.com/N3v5F2x). Screenshots are essential to this bot because I have no way of knowing what the bot is seeing without them. The Chrome window it works in is invisible. Next, I have the bot click "Add to Cart" and `time.sleep()` for a short amount of time. These `time.sleep()`s are important so that the bot acts more like a human and thus avoids suspicion from the website. While this leads to longer wait times, I figure it's a good trade-off. If at any point the bot does not "see" the buttons or comes up against an error, the bot stops immediately and notifies the user of an error. This is made possible by the `try:` `except:` parts of my code. Afterwards, the bot inserts information gathered by the SQL table into the text boxes of the website. It finds the textboxes by `xpath` because it's unique to each element. If successful, `5.png` will look like [this](https://imgur.com/NWiWkd2), only the name and email address associated will obviously be different. After entering shipping information, **the fun begins!** Chad Shirts uses [Stripe](https://stripe.com/) to verify credit card information and to prevent bots like mine from entering information. [Thanks to this stackoverflow discussion and some fiddling, I was able to get through!](https://stackoverflow.com/questions/48805576/using-selenium-webdriver-to-interact-with-stripe-card-element-iframe-cucumber) Essentially, I needed to switch to the Stripe card frame by simulating TABing or clicking the field and then I had the bot enter the credit card number. For some reason, the CVV and expiration date information only worked when I had the bot type a dummy character (in this case, the number `1`) and then the actual information. Upon success, the bot clicks the submit button, takes a couple screenshots, sends a success email, and then directs the user to `success.html`, where a gif of Lil Uzi Vert will greet him or her.
+
+* `@app.route("/login")`, `@app.route("/logout")`, and `@app.route("/register")` are all identical to Finance.
+
+# `helpers.py`
+
+This section is for `helpers.py` and not `application.py`. Since this file is mostly identical to Finance's `helpers.py`, I will focus on the two functions that I created, `validate()` and `sendemail()`.
+
+* `sendemail()`: This allows me to send an email straight from chadshirtsbot@gmail.com and create an SMTP server using Google. I had to go into the email settings in order to allow this function to log into the account. This function takes the recipient email `email` and a message `message` and sends the email, and then shuts the server down. I made it open and close the server each time the `sendemail()` was called so that I avoid memory leaks and socket problems.  I also had the program return a boolean just in case I wanted to test anything.
+
+* `validate()`: I repurposed the validate function found [here](http://code.activestate.com/recipes/172845-python-luhn-checksum-for-credit-card-validation/) for my own uses. The function returns a boolean to indicate if the number is, in fact, valid. It's either I repurpose this or use Stripe's API, and it was a lot simpler to use this. Credit is given where credit is due.
+
+# Image Gallery
+
+If you would like to see what the Chrome bot sees throughout the process as well as proof that it worked, [here is a link to the image gallery.](https://imgur.com/a/Nt145z1)
+
+# Thank you!

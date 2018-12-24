@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Portfolio
+{% endblock %}
+
+{% block main %}
+    <table id="portfolio" class="table table-striped table-bordered" style="width:100%">
+        <thead>
+            <tr>
+                <th>Symbol</th>
+                <th>Name</th>
+                <th>Shares</th>
+                <th>Price</th>
+                <th>TOTAL</th>
+            </tr>
+        </thead>
+        {% for row in transaction %}
+            <tr>
+                {% for item in row %}
+                <td>{{ item }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+        <tr>
+                <td>CASH</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>{{ cost }}</td>
+        </tr>
+        <tfoot>
+            <td colspan="4"></td>
+            <td style="bold">{{ grandtotal }}</td>
+        </tfoot>
+
+
+
+
+    </table>
+{% endblock %}

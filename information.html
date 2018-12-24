@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Customer Information
+{% endblock %}
+
+{% block main %}
+    <p>
+        Name: {{ info.name }}
+    </p>
+    <p>
+        Email: {{ info.email }}
+    </p>
+    <p>
+        Phone Number: {{ info.telephone }}
+    </p>
+    <p>
+        Address: <br>
+        {{ info.address }}<br>{{ info.city }}, {{ info.state }}  {{ info.zip }}<br>
+    </p>
+    <p>
+        Most of your credit card information is hidden for your protection.
+    </p>
+    <p>
+        Credit Card Number: {{ info.ccnum }}
+    </p>
+    <p style="text-align:center;">
+        <a href="/update" class="btn btn-success">
+            Need to update your information?
+        </a>
+    </p>
+{% endblock %}
